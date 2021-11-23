@@ -26,7 +26,6 @@
 #include "keymap_estonian.h"
 #include "keymap_belgian.h"
 #include "keymap_us_international.h"
-#include "print.h"
 
 #define KC_MAC_UNDO LGUI(KC_Z)
 #define KC_MAC_CUT LGUI(KC_X)
@@ -67,7 +66,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     MO(2),          KC_A,           KC_S,           KC_D,           KC_F,           KC_G,           MO(4),                                                                          KC_MEH,         KC_H,           KC_J,           KC_K,           KC_L,           KC_SCOLON,      LT(2,KC_QUOTE),
     KC_LSHIFT,      LCTL_T(KC_Z),   KC_X,           KC_C,           KC_V,           KC_B,                                           KC_N,           KC_M,           KC_COMMA,       KC_DOT,         RCTL_T(KC_SLASH),KC_RSHIFT,
     LT(2,KC_GRAVE), WEBUSB_PAIR,    MO(4),          MO(3),          TD(DANCE_1),    LALT_T(KC_APPLICATION),                                                                                                KC_ESCAPE,      ST_MACRO_0,     TG(1),          KC_LBRACKET,    KC_RBRACKET,    KC_TRANSPARENT,
-    KC_SPACE,       KC_BSPACE,      KC_LGUI,                        LGUI(KC_SPACE), KC_RGUI,        KC_ENTER
+    KC_SPACE,       KC_BSPACE,      KC_LGUI,                        TG(1),          KC_RGUI,        KC_ENTER
   ),
   [1] = LAYOUT_moonlander(
     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,                                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
@@ -145,6 +144,9 @@ void set_layer_color(int layer) {
 void rgb_matrix_indicators_user(void) {
   if (g_suspend_state || keyboard_config.disable_layer_led) { return; }
   switch (biton32(layer_state)) {
+    case 1:
+      set_layer_color(1);
+      break;
     case 4:
       set_layer_color(4);
       break;
