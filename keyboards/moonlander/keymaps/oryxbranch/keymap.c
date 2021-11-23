@@ -154,17 +154,18 @@ void rgb_matrix_indicators_user(void) {
 }
 
 layer_state_t layer_state_set_user(layer_state_t state) {
-  debug_enable=true;
-  dprintf("%s layer_state, %s highest_layer_state", layer_state, get_highest_layer(layer_state));
-
-  /** Send shortcut for language switch
-   *
-   * In Karabiner Elements Alt+Command+Shift+L set language to EN
-   * On every layer switch we send this shortcut, emulating manual layout change
-   */
-  register_code16(LALT(LGUI(LSFT(KC_L))));
-  unregister_code16(LALT(LGUI(LSFT(KC_L))));
-  return state;
+    uint8_t layer = biton32(state);
+    switch (layer) {
+        case 1:
+          register_code16(LALT(LGUI(LSFT(KC_P))));
+          unregister_code16(LALT(LGUI(LSFT(KC_P))));
+          break;
+        default:
+          register_code16(LALT(LGUI(LSFT(KC_L))));
+          unregister_code16(LALT(LGUI(LSFT(KC_L))));
+          break;
+    }
+    return state;
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
