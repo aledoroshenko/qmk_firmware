@@ -42,6 +42,7 @@
 #define NO_BSLS_ALT KC_EQUAL
 #define LSA_T(kc) MT(MOD_LSFT | MOD_LALT, kc)
 #define BP_NDSH_MAC ALGR(KC_8)
+#define SE_SECT_MAC ALGR(KC_6)
 #define MOON_LED_LEVEL LED_LEVEL
 
 enum custom_keycodes {
@@ -57,6 +58,7 @@ enum tap_dance_codes {
   DANCE_0,
   DANCE_1,
   DANCE_2,
+  DANCE_3,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -64,15 +66,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_EQUAL,       KC_1,           KC_2,           KC_3,           KC_4,           KC_5,           TD(DANCE_0),                                    TD(DANCE_2),    KC_6,           KC_7,           KC_8,           KC_9,           KC_0,           KC_MINUS,
     KC_TAB,         KC_Q,           KC_W,           KC_E,           KC_R,           KC_T,           MO(4),                                          LALT(LGUI(LCTL(LSFT(KC_T)))),KC_Y,           KC_U,           KC_I,           KC_O,           KC_P,           KC_BSLASH,
     MO(2),          KC_A,           KC_S,           KC_D,           KC_F,           KC_G,           MO(5),                                                                          KC_MEH,         KC_H,           KC_J,           KC_K,           KC_L,           KC_SCOLON,      LT(2,KC_QUOTE),
-    KC_LSHIFT,      LCTL_T(KC_Z),   KC_X,           KC_C,           KC_V,           KC_B,                                           KC_N,           KC_M,           KC_COMMA,       KC_DOT,         RCTL_T(KC_SLASH),KC_RSHIFT,
-    LT(2,KC_GRAVE), WEBUSB_PAIR,    MO(4),          MO(3),          TD(DANCE_1),    LALT_T(KC_APPLICATION),                                                                                                KC_ESCAPE,      ST_MACRO_0,     TG(1),          KC_LBRACKET,    KC_RBRACKET,    KC_TRANSPARENT,
+    KC_LSHIFT,      MT(MOD_LCTL, KC_Z),KC_X,           KC_C,           KC_V,           KC_B,                                           KC_N,           KC_M,           KC_COMMA,       KC_DOT,         MT(MOD_RCTL, KC_SLASH),KC_RSHIFT,
+    LT(2,KC_GRAVE), WEBUSB_PAIR,    MO(4),          MO(3),          TD(DANCE_1),    MT(MOD_LALT, KC_APPLICATION),                                                                                                KC_ESCAPE,      ST_MACRO_0,     TG(1),          KC_LBRACKET,    KC_RBRACKET,    KC_TRANSPARENT,
     KC_SPACE,       KC_BSPACE,      KC_LGUI,                        TG(1),          KC_RGUI,        KC_ENTER
   ),
   [1] = LAYOUT_moonlander(
     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,                                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
     KC_TRANSPARENT, RU_SHTI,        RU_TSE,         RU_U,           RU_KA,          RU_IE,          KC_TRANSPARENT,                                 KC_TRANSPARENT, RU_EN,          RU_GHE,         RU_SHA,         RU_SHCH,        RU_ZE,          RU_HA,
     KC_TRANSPARENT, RU_EF,          RU_YERU,        RU_VE,          RU_A,           RU_PE,          KC_TRANSPARENT,                                                                 KC_TRANSPARENT, RU_ER,          RU_O,           RU_EL,          RU_DE,          RU_ZHE,         KC_TRANSPARENT,
-    KC_TRANSPARENT, RU_YA,          RU_CHE,         RU_ES,          RU_EM,          RU_I,                                           RU_TE,          RU_SOFT,        RU_BE,          RU_YU,          KC_TRANSPARENT, KC_TRANSPARENT,
+    KC_TRANSPARENT, RU_YA,          RU_CHE,         RU_ES,          RU_EM,          RU_I,                                           RU_TE,          TD(DANCE_3),    RU_BE,          RU_YU,          KC_TRANSPARENT, KC_TRANSPARENT,
     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,                                                                                                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, RU_YO,          KC_TRANSPARENT, KC_TRANSPARENT,
     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT
   ),
@@ -221,7 +223,7 @@ enum {
     MORE_TAPS
 };
 
-static tap dance_state[3];
+static tap dance_state[4];
 
 uint8_t dance_step(qk_tap_dance_state_t *state);
 
@@ -339,10 +341,44 @@ void dance_2_reset(qk_tap_dance_state_t *state, void *user_data) {
     }
     dance_state[2].step = 0;
 }
+void on_dance_3(qk_tap_dance_state_t *state, void *user_data);
+void dance_3_finished(qk_tap_dance_state_t *state, void *user_data);
+void dance_3_reset(qk_tap_dance_state_t *state, void *user_data);
+
+void on_dance_3(qk_tap_dance_state_t *state, void *user_data) {
+    if(state->count == 3) {
+        tap_code16(RU_SOFT);
+        tap_code16(RU_SOFT);
+        tap_code16(RU_SOFT);
+    }
+    if(state->count > 3) {
+        tap_code16(RU_SOFT);
+    }
+}
+
+void dance_3_finished(qk_tap_dance_state_t *state, void *user_data) {
+    dance_state[3].step = dance_step(state);
+    switch (dance_state[3].step) {
+        case SINGLE_TAP: register_code16(RU_SOFT); break;
+        case DOUBLE_TAP: register_code16(RU_HARD); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(RU_SOFT); register_code16(RU_SOFT);
+    }
+}
+
+void dance_3_reset(qk_tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (dance_state[3].step) {
+        case SINGLE_TAP: unregister_code16(RU_SOFT); break;
+        case DOUBLE_TAP: unregister_code16(RU_HARD); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(RU_SOFT); break;
+    }
+    dance_state[3].step = 0;
+}
 
 qk_tap_dance_action_t tap_dance_actions[] = {
         [DANCE_0] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_0, dance_0_finished, dance_0_reset),
         [DANCE_1] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_1, dance_1_finished, dance_1_reset),
         [DANCE_2] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_2, dance_2_finished, dance_2_reset),
+        [DANCE_3] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_3, dance_3_finished, dance_3_reset),
 };
 
