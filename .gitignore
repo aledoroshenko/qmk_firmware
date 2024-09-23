@@ -119,14 +119,14 @@ via*.json
 /keyboards/**/keymaps/vial/*
 
 # ZSA Specific ignores
-/docs/**
-/users/**
-/layouts/community/**
-/keyboards/**
-!/keyboards/zsa/
-!/keyboards/zsa/**
-/keyboards/zsa/**/keymaps/**
-!/keyboards/zsa/**/keymaps/default
-!/keyboards/zsa/**/keymaps/default/**
-!/keyboards/zsa/**/keymaps/oryx
-!/keyboards/zsa/**/keymaps/oryx/**
+#/docs/**
+#/users/**
+#/layouts/community/**
+#/keyboards/**
+#!/keyboards/zsa/
+##!/keyboards/zsa/**
+##/keyboards/zsa/**/keymaps/**
+#!/keyboards/zsa/**/keymaps/default
+#!/keyboards/zsa/**/keymaps/default/**
+#!/keyboards/zsa/**/keymaps/oryx
+#!/keyboards/zsa/**/keymaps/oryx/**
