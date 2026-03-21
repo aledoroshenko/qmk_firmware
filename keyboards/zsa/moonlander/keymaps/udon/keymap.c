@@ -2,10 +2,12 @@
 #include "version.h"
 #include "i18n.h"
 #define MOON_LED_LEVEL LED_LEVEL
-#define ML_SAFE_RANGE SAFE_RANGE
+#ifndef ZSA_SAFE_RANGE
+#define ZSA_SAFE_RANGE SAFE_RANGE
+#endif
 
 enum custom_keycodes {
-  RGB_SLD = ML_SAFE_RANGE,
+  RGB_SLD = ZSA_SAFE_RANGE,
   HSV_0_245_245,
   HSV_74_255_206,
   HSV_152_255_255,
@@ -64,60 +66,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 };
 
+
 const uint16_t PROGMEM combo0[] = { KC_0, KC_MINUS, COMBO_END};
 const uint16_t PROGMEM combo1[] = { KC_MEH, KC_H, COMBO_END};
 const uint16_t PROGMEM combo2[] = { KC_MEH, KC_H, KC_J, COMBO_END};
 
 combo_t key_combos[COMBO_COUNT] = {
-    COMBO(combo0, KC_HYPR),
+    COMBO(combo0, LALT(LGUI(LCTL(LSFT(KC_E))))),
     COMBO(combo1, LALT(LGUI(LCTL(LSFT(KC_A))))),
     COMBO(combo2, LALT(LGUI(LCTL(LSFT(KC_S))))),
 };
 
 
 
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  switch (keycode) {
-
-    case RGB_SLD:
-        if (rawhid_state.rgb_control) {
-            return false;
-        }
-        if (record->event.pressed) {
-            rgblight_mode(1);
-        }
-        return false;
-    case HSV_0_245_245:
-        if (rawhid_state.rgb_control) {
-            return false;
-        }
-        if (record->event.pressed) {
-            rgblight_mode(1);
-            rgblight_sethsv(0,245,245);
-        }
-        return false;
-    case HSV_74_255_206:
-        if (rawhid_state.rgb_control) {
-            return false;
-        }
-        if (record->event.pressed) {
-            rgblight_mode(1);
-            rgblight_sethsv(74,255,206);
-        }
-        return false;
-    case HSV_152_255_255:
-        if (rawhid_state.rgb_control) {
-            return false;
-        }
-        if (record->event.pressed) {
-            rgblight_mode(1);
-            rgblight_sethsv(152,255,255);
-        }
-        return false;
-  }
-  return true;
-}
 
 
 typedef struct {
@@ -293,17 +254,86 @@ tap_dance_action_t tap_dance_actions[] = {
         [DANCE_3] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_3, dance_3_finished, dance_3_reset),
 };
 
-layer_state_t layer_state_set_user(layer_state_t state) {
-    uint8_t layer = biton32(state);
-    switch (layer) {
-        case 1:
-          register_code16(LALT(LGUI(LSFT(KC_P))));
-          unregister_code16(LALT(LGUI(LSFT(KC_P))));
-          break;
-        default:
-          register_code16(LALT(LGUI(LSFT(KC_L))));
-          unregister_code16(LALT(LGUI(LSFT(KC_L))));
-          break;
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  switch (keycode) {
+  case QK_MODS ... QK_MODS_MAX:
+    // Mouse and consumer keys (volume, media) with modifiers work inconsistently across operating systems,
+    // this makes sure that modifiers are always applied to the key that was pressed.
+    if (IS_MOUSE_KEYCODE(QK_MODS_GET_BASIC_KEYCODE(keycode)) || IS_CONSUMER_KEYCODE(QK_MODS_GET_BASIC_KEYCODE(keycode))) {
+      if (record->event.pressed) {
+        add_mods(QK_MODS_GET_MODS(keycode));
+        send_keyboard_report();
+        wait_ms(2);
+        register_code(QK_MODS_GET_BASIC_KEYCODE(keycode));
+        return false;
+      } else {
+        wait_ms(2);
+        del_mods(QK_MODS_GET_MODS(keycode));
+      }
     }
+    break;
+
+    case RGB_SLD:
+        if (rawhid_state.rgb_control) {
+            return false;
+        }
+        if (record->event.pressed) {
+            rgblight_mode(1);
+        }
+        return false;
+    case HSV_0_245_245:
+        if (rawhid_state.rgb_control) {
+            return false;
+        }
+        if (record->event.pressed) {
+            rgblight_mode(1);
+            rgblight_sethsv(0,245,245);
+        }
+        return false;
+    case HSV_74_255_206:
+        if (rawhid_state.rgb_control) {
+            return false;
+        }
+        if (record->event.pressed) {
+            rgblight_mode(1);
+            rgblight_sethsv(74,255,206);
+        }
+        return false;
+    case HSV_152_255_255:
+        if (rawhid_state.rgb_control) {
+            return false;
+        }
+        if (record->event.pressed) {
+            rgblight_mode(1);
+            rgblight_sethsv(152,255,255);
+        }
+        return false;
+  }
+  return true;
+}
+
+enum { karabiner_ru_when_top_layer_is = 1 };
+
+/** Tap left Opt+Cmd+Shift+key in one shot — matches Karabiner rules that use left_option, left_command, left_shift. */
+static void tap_karabiner_input_source_hotkey(uint16_t key) {
+    uint16_t chord = LALT(LGUI(LSFT(key)));
+    register_code16(chord);
+    unregister_code16(chord);
+}
+
+/**
+ * QMK layer-state hook (name fixed by firmware): called whenever the active layer mask changes.
+ * Host: Karabiner maps Opt+Shift+Cmd+P → Russian and Opt+Shift+Cmd+L → English; we emit the chord
+ * for the current highest active layer (biton32) so input source follows layer 1 vs all other stacks.
+ */
+layer_state_t layer_state_set_user(layer_state_t state) {
+    uint8_t highest_active_layer = biton32(state);
+
+    if (highest_active_layer == karabiner_ru_when_top_layer_is) {
+        tap_karabiner_input_source_hotkey(KC_P);
+    } else {
+        tap_karabiner_input_source_hotkey(KC_L);
+    }
+
     return state;
 }
