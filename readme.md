@@ -8,7 +8,7 @@ which are not supported by Oryx natively (set layer to base, react on layer chan
 1. Update layout in Oryx
 2. Make updates to the layout in this repo (hard way for custom features not available in Oryx)
 3. Download source files from Oryx
-4. Copy-paste it in the folder with layout (`moonlander/keymaps/udon`), overwrite all
+4. Copy-paste it in the folder with layout (`keyboards/zsa/moonlander/keymaps/udon`), overwrite all
 5. Review diff and bring back custom overrides (function to switch language on layer change)
 5. Commit changes
 6. Compile layout (`qmk compile -kb moonlander -km udon`, `qmk clean -a` if some issues)
